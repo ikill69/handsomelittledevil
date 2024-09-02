@@ -3,6 +3,7 @@ import fs from "fs";
 import matter from "gray-matter";
 import { join } from "path";
 
+const config = require('../../next.config');
 const postsDirectory = join(process.cwd(), "_posts");
 
 export function getPostSlugs() {
@@ -15,7 +16,13 @@ export function getPostBySlug(slug: string) {
   const fileContents = fs.readFileSync(fullPath, "utf8");
   const { data, content } = matter(fileContents);
 
-  return { ...data, slug: realSlug, content } as Post;
+  // Replace ${basePath} with next.config.js basePath for git hub pages to work
+  let post = { ...data, slug: realSlug, content } as Post;
+  let postString = JSON.stringify(post);
+  postString = postString.replaceAll(/\$\{basePath\}/gi, config.basePath);
+  post = JSON.parse(postString);
+
+  return post as Post;
 }
 
 export function getAllPosts(): Post[] {
